@@ -7,8 +7,8 @@ import os
 app = Flask(__name__)
 
 # Database configuration
-base_dir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.dirname(base_dir), 'Weather.sqlite3')
+# The os.getcwd() method ensures the database is created in the Heroku working directory
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.getcwd(), 'Weather.sqlite3')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
