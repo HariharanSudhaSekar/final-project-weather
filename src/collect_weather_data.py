@@ -1,32 +1,12 @@
 #!/usr/bin/env python3
 
 import requests
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
 import os
+from datetime import datetime
 
-# Create a minimal Flask app instance just for SQLAlchemy to connect
-app = Flask(__name__)
-
-# Configure the database URI for Heroku deployment
-# The os.path.dirname(base_dir) part ensures we look for the database file one level up
-base_dir = os.path.abspath(os.path.dirname(__file__))
-db_path = os.path.join(os.path.dirname(base_dir), 'Weather.sqlite3')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
-
-# Define the Weather database model
-class Weather(db.Model):
-    __tablename__ = "weather_data"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    entry_time = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    temperature_celsius = db.Column(db.Float, nullable=False)
-
-    def __repr__(self):
-        return f"<Weather(Time: {self.entry_time}, Temp: {self.temperature_celsius}°C)>"
+# Import the app, db, and Weather model from the main application file
+# This ensures we use the same database configuration (PostgreSQL)
+from src.app import app, db, Weather
 
 # Function to fetch temperature from Open-Meteo API for Chennai
 def get_temperature():
@@ -45,10 +25,8 @@ def get_temperature():
 
 # Main execution block
 if __name__ == "__main__":
+    # All database operations must run within the Flask application context
     with app.app_context():
-        # This will create the database file and table if they don't exist
-        db.create_all()
-
         current_temperature = get_temperature()
 
         if current_temperature is not None:
@@ -56,7 +34,7 @@ if __name__ == "__main__":
             db.session.add(new_weather_entry)
             try:
                 db.session.commit()
-                print(f"Successfully added temperature {current_temperature}°C at {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} to Weather.sqlite3")
+                print(f"Successfully added temperature {current_temperature}°C at {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} to PostgreSQL database.")
             except Exception as e:
                 db.session.rollback()
                 print(f"Error saving data to database: {e}")
