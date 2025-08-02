@@ -9,9 +9,11 @@ import os
 # Create a minimal Flask app instance just for SQLAlchemy to connect
 app = Flask(__name__)
 
-# Configure the database URI
+# Configure the database URI for Heroku deployment
+# The os.path.dirname(base_dir) part ensures we look for the database file one level up
 base_dir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(base_dir, 'Weather.sqlite3')
+db_path = os.path.join(os.path.dirname(base_dir), 'Weather.sqlite3')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -35,7 +37,6 @@ def get_temperature():
         response = requests.get(API_URL, timeout=10)
         response.raise_for_status()
         data = response.json()
-
         current_temperature = data['current_weather']['temperature']
         return current_temperature
     except requests.exceptions.RequestException as e:
@@ -45,6 +46,7 @@ def get_temperature():
 # Main execution block
 if __name__ == "__main__":
     with app.app_context():
+        # This will create the database file and table if they don't exist
         db.create_all()
 
         current_temperature = get_temperature()
