@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # Database configuration
 # Use DATABASE_URL from Heroku, fallback to a local SQLite for testing
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///Weather.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgres://", "postgresql://", 1) or 'sqlite:///Weather.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
